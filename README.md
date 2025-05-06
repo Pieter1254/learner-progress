@@ -24,11 +24,10 @@ Make sure you have these installed on your Linux machine:
 ### Installation
 
 1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-repo/learner-progress.git
-   cd learner-progress
-   ```
-
+```bash
+git clone https://github.com/your-repo/learner-progress.git
+cd learner-progress
+```
 
 2. **Install PHP dependencies**:
 ```bash
@@ -39,7 +38,6 @@ composer install
 ```bash
 npm install
 ```
-
 
 4. **Set up SQLite database**:
 ```bash
