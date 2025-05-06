@@ -17,4 +17,22 @@ class Course extends Model
     protected $fillable = [
         'name',
     ];
+
+    /**
+     * Get the enrollments for the course.
+     */
+    public function enrolments()
+    {
+        return $this->hasMany(Enrolment::class);
+    }
+
+    /**
+     * Get the learners enrolled in this course.
+     */
+    public function learners()
+    {
+        return $this->belongsToMany(Learner::class, 'enrolments')
+            ->withPivot('progress')
+            ->withTimestamps();
+    }
 }

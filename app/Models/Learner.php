@@ -15,7 +15,16 @@ class Learner extends Model
      * @var array
      */
     protected $fillable = [
-        'firstname',
-        'lastname',
+        'fullName',
+        'email',
+        // Add other relevant fields
     ];
+
+    /**
+     * Get the enrollments for the learner.
+     */
+    public function enrolments()
+    {
+        return $this->hasMany(Enrolment::class);
+    }
 }

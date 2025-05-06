@@ -2,17 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Enrolment extends Model
 {
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
-
+    use HasFactory;
+    
     /**
      * The table associated with the model.
      *
@@ -39,4 +35,20 @@ class Enrolment extends Model
     protected $casts = [
         'progress' => 'decimal:2',
     ];
+
+    /**
+     * Get the learner that owns the enrollment.
+     */
+    public function learner()
+    {
+        return $this->belongsTo(Learner::class);
+    }
+
+    /**
+     * Get the course that this enrollment belongs to.
+     */
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 }
