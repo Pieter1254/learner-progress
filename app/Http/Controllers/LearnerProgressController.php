@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LearnerProgressRequest;
 use App\Models\Learner;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class LearnerProgressController extends Controller
 {
-    public function index(Request $request)
+    public function index(LearnerProgressRequest $request)
     {
         try {
-            $courseFilter = $request->query('course');
-            $sortDirection = $request->query('sort', 'asc');
+            $validated = $request->validated();
+            $courseFilter = $validated['course'] ?? null;
+            $sortDirection = $validated['sort'] ?? 'asc';
 
             $learnersQuery = Learner::with(['enrolments.course']);
 
@@ -37,11 +38,16 @@ class LearnerProgressController extends Controller
                     ];
                 });
 
-            if (in_array($sortDirection, ['asc', 'desc'])) {
-                $learners = $learners->sortBy(function ($learner) {
-                    return $learner['enrollments'][0]['progress'] ?? 0;
-                }, SORT_REGULAR, $sortDirection === 'desc')->values();
-            }
+                if (in_array($sortDirection, ['asc', 'desc'])) {
+                    $learners = $learners->sortBy(function ($learner) {
+                        // average progress for sorting
+                        if (empty($learner['enrollments'])) {
+                            return 0;
+                        }
+                        $total = array_sum(array_column($learner['enrollments'], 'progress'));
+                        return $total / count($learner['enrollments']);
+                    }, SORT_REGULAR, $sortDirection === 'desc')->values();
+                }
 
             return response()->json([
                 'learners' => $learners,
