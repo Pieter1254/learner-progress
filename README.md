@@ -27,12 +27,13 @@ Make sure you have these installed on your Linux machine:
    ```bash
    git clone https://github.com/your-repo/learner-progress.git
    cd learner-progress
+   ```
 
 
 2. **Install PHP dependencies**:
 ```bash
 composer install
-
+```
 
 3. **Install JavaScript dependencies**:
 ```bash
