@@ -9,22 +9,21 @@ class Learner extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'fullName',
+        'firstname',
+        'lastname',
         'email',
-        // Add other relevant fields
     ];
 
-    /**
-     * Get the enrollments for the learner.
-     */
+    protected $appends = ['fullName'];
+
     public function enrolments()
     {
         return $this->hasMany(Enrolment::class);
+    }
+
+    public function getFullNameAttribute()
+    {
+        return "{$this->firstname} {$this->lastname}";
     }
 }
