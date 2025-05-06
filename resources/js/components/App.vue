@@ -21,7 +21,7 @@
         <div v-if="!isLoading && !error" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-4 rounded-lg shadow border border-gray-100">
                 <div class="text-gray-500 text-sm font-medium">Total Learners</div>
-                <div class="text-2xl font-bold text-gray-800 mt-1">{{ filteredLearners.length }}</div>
+                <div class="text-2xl font-bold text-gray-800 mt-1">{{ learners.length }}</div>
             </div>
             <div class="bg-white p-4 rounded-lg shadow border border-gray-100">
                 <div class="text-gray-500 text-sm font-medium">Active Courses</div>
@@ -90,7 +90,7 @@
                             </span>
                         </label>
                         <div class="relative">
-                            <select id="courseFilter" v-model="selectedCourse"
+                            <select id="courseFilter" v-model="selectedCourse" @change="fetchLearnerProgress"
                                 class="block w-full pl-10 pr-3 py-2 text-base border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-indigo-50 text-indigo-900">
                                 <option value="">All Courses</option>
                                 <option v-for="course in uniqueCourses" :key="course" :value="course">{{ course }}
@@ -106,7 +106,6 @@
                         </div>
                     </div>
 
-
                     <div>
                         <label for="sortProgress" class="block text-sm font-medium text-gray-700 mb-1">
                             <span class="flex items-center">
@@ -120,7 +119,7 @@
                         </label>
                         <div class="flex space-x-2">
                             <div class="relative flex-1">
-                                <select id="sortProgress" v-model="sortDirection"
+                                <select id="sortProgress" v-model="sortDirection" @change="fetchLearnerProgress"
                                     class="block w-full pl-10 pr-3 py-2 text-base border border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 sm:text-sm rounded-md bg-sky-50 text-sky-900">
                                     <option value="">Default Order</option>
                                     <option value="asc">Lowest Progress First</option>
@@ -144,7 +143,7 @@
                 </div>
             </div>
 
-            <div v-if="filteredLearners.length === 0"
+            <div v-if="learners.length === 0"
                 class="bg-white p-8 rounded-lg shadow border border-gray-100 text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
@@ -162,7 +161,7 @@
             </div>
 
             <div v-else class="space-y-6">
-                <div v-for="learner in filteredLearners" :key="learner.id"
+                <div v-for="learner in learners" :key="learner.id"
                     class="bg-white overflow-hidden shadow rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-200">
 
                     <div
@@ -268,34 +267,12 @@ const uniqueCourses = computed(() => {
     return Array.from(courses).sort()
 })
 
-const filteredLearners = computed(() => {
-    let result = [...learners.value]
-
-    if (selectedCourse.value) {
-        result = result.filter(learner =>
-            learner.enrollments?.some(
-                enrollment => enrollment.courseName === selectedCourse.value
-            )
-        )
-    }
-
-    if (sortDirection.value) {
-        result.sort((a, b) => {
-            const avgA = calculateAverageProgress(a)
-            const avgB = calculateAverageProgress(b)
-            return sortDirection.value === 'asc' ? avgA - avgB : avgB - avgA
-        })
-    }
-
-    return result
-})
-
 const averageProgress = computed(() => {
-    if (filteredLearners.value.length === 0) return 0
-    const total = filteredLearners.value.reduce((sum, learner) => {
+    if (learners.value.length === 0) return 0
+    const total = learners.value.reduce((sum, learner) => {
         return sum + calculateAverageProgress(learner)
     }, 0)
-    return Math.round(total / filteredLearners.value.length)
+    return Math.round(total / learners.value.length)
 })
 
 function calculateAverageProgress(learner) {
@@ -307,30 +284,38 @@ function calculateAverageProgress(learner) {
 function getProgressStatus(progress) {
     if (progress >= 70) return 'Excellent'
     if (progress >= 40) return 'Good'
-    if (progress >= 20) return 'Needs Improvement'
-    return 'At Risk'
+    return 'Needs Improvement'
 }
 
-function resetFilters() {
-    selectedCourse.value = ''
-    sortDirection.value = ''
-}
-
-// get learners from the backend
+// get user data from the filter and sorting options from the backend
 async function fetchLearnerProgress() {
     isLoading.value = true
     error.value = null
 
     try {
-        const response = await axios.get('/api/learner-progress')
+        const params = new URLSearchParams()
+
+        if (selectedCourse.value) {
+            params.append('course', selectedCourse.value)
+        }
+
+        if (sortDirection.value) {
+            params.append('sort', sortDirection.value)
+        }
+
+        const response = await axios.get(`/api/learner-progress?${params.toString()}`)
         learners.value = response.data.learners
     } catch (err) {
-        error.value = err.response?.data?.message ||
-            err.message ||
-            'Failed to fetch learner progress data'
-        console.error('API error:', err)
+        error.value = 'Failed to load learners.'
+        console.error('Error:', err)
     } finally {
         isLoading.value = false
     }
+}
+
+function resetFilters() {
+    selectedCourse.value = ''
+    sortDirection.value = ''
+    fetchLearnerProgress()
 }
 </script>

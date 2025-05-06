@@ -8,11 +8,21 @@ use Illuminate\Support\Facades\Log;
 
 class LearnerProgressController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $learners = Learner::with(['enrolments.course'])
-                ->get()
+            $courseFilter = $request->query('course');
+            $sortDirection = $request->query('sort', 'asc');
+
+            $learnersQuery = Learner::with(['enrolments.course']);
+
+            if ($courseFilter) {
+                $learnersQuery->whereHas('enrolments.course', function ($query) use ($courseFilter) {
+                    $query->where('name', 'like', '%' . $courseFilter . '%');
+                });
+            }
+
+            $learners = $learnersQuery->get()
                 ->map(function ($learner) {
                     return [
                         'id' => $learner->id,
@@ -27,7 +37,11 @@ class LearnerProgressController extends Controller
                     ];
                 });
 
-            Log::info('Learners: ' . $learners);
+            if (in_array($sortDirection, ['asc', 'desc'])) {
+                $learners = $learners->sortBy(function ($learner) {
+                    return $learner['enrollments'][0]['progress'] ?? 0;
+                }, SORT_REGULAR, $sortDirection === 'desc')->values();
+            }
 
             return response()->json([
                 'learners' => $learners,
