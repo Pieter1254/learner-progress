@@ -75,7 +75,7 @@ npm run dev
 
 10. **Start the development server**:
 ```bash
-    php artisan serve
+php artisan serve
 ```
 
 Running the Application
