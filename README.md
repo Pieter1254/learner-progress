@@ -78,10 +78,8 @@ npm run dev
 php artisan serve
 ```
 
-Running the Application
 Access the application at:
 http://localhost:8000
 
-Database Structure
 The SQLite database is located at:
 /database/database.sqlite
