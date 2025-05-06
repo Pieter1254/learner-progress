@@ -26,14 +26,16 @@ class LearnerProgressController extends Controller
                         })->toArray()
                     ];
                 });
-            
+
+            Log::info('Learners: ' . $learners);
+
             return response()->json([
                 'learners' => $learners,
                 'status' => 'success'
             ]);
         } catch (\Exception $e) {
             Log::error('Learner Progress API error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred while fetching learner progress data',
